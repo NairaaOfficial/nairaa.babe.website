@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="bfzbieGSeIkB7IYL4x4eETL296O8jQiU4E5ifIUiePk" />
+    <title>Multi-Platform Upload App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Multi-Platform Upload App</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/privacy-policy">Privacy Policy</a></li>
+                    <li><a href="/terms-of-service">Terms of Service</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- This block will be replaced by the content of each specific page -->
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="popup-container">
+                {% for category, message in messages %}
+                    <div class="popup {{ category }}">
+                        <span>{{ message }}</span>
+                        <button class="close-btn" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Multi-Platform Upload App. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const popups = document.querySelectorAll('.popup');
+        popups.forEach(popup => {
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 5000); // Auto-hide after 5 seconds
+        });
+    });
+</script>
+
+</html>

@@ -1,0 +1,43 @@
+name: Reply to Instagram Comments
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/10 * * * *'
+  
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      # Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.9'  # Specify the Python version you need
+
+      # Install the necessary packages
+      - name: Installed package list
+        run: apt list --installed
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+         python3 -m pip install --upgrade pip
+         pip3 install -r requirements.txt
+
+      # Run your Python script
+      - name: Run Python script
+        env:
+            INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+            GEMINI_API_KEY_COMMENTS: ${{ secrets.GEMINI_API_KEY_COMMENTS }}
+            INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+            SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+            SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+            API_VERSION: ${{ secrets.API_VERSION }}
+            BASE_URL: ${{ secrets.BASE_URL }}
+        run: python3 reply_instagram.py
