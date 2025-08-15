@@ -34,10 +34,10 @@ jobs:
       - name: Run Python script
         env:
             INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
-            GEMINI_API_KEY_COMMENTS: ${{ secrets.GEMINI_API_KEY_COMMENTS }}
+            GEMINI_API_KEY_INSTAGRAM: ${{ secrets.GEMINI_API_KEY_INSTAGRAM }}
             INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
-            SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-            SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-            API_VERSION: ${{ secrets.API_VERSION }}
-            BASE_URL: ${{ secrets.BASE_URL }}
+            SUPABASE_URL_INSTAGRAM: ${{ secrets.SUPABASE_URL_INSTAGRAM }}
+            SUPABASE_KEY_INSTAGRAM: ${{ secrets.SUPABASE_KEY_INSTAGRAM }}
+            API_VERSION_INSTAGRAM: ${{ secrets.API_VERSION_INSTAGRAM }}
+            BASE_URL_INSTAGRAM: ${{ secrets.BASE_URL_INSTAGRAM }}
         run: python3 reply_instagram.py
