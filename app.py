@@ -73,26 +73,6 @@ def verify_webhook_instagram():
         print("❌ Verification failed.")
         return "Verification failed", 403
 
-@app.route('/webhookinstagramdms', methods=['GET'])
-def verify_webhook_instagram_dms():
-    print("🔎 Query params:", request.args)
-
-    mode = request.args.get("hub.mode")
-    token = request.args.get("hub.verify_token")
-    challenge = request.args.get("hub.challenge")
-
-    print("🔍 Mode:", mode)
-    print("🔍 Token from Meta:", token)
-    print("🔍 Challenge:", challenge)
-    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_INSTAGRAM)
-
-    if mode == "subscribe" and token == VERIFY_TOKEN_INSTAGRAM:
-        print("✅ Webhook verified.")
-        return challenge, 200  # Must return challenge as plain text
-    else:
-        print("❌ Verification failed.")
-        return "Verification failed", 403
-
 @app.route('/webhookthreads', methods=['GET'])
 def verify_webhook_threads():
     print("🔎 Query params:", request.args)
@@ -302,21 +282,10 @@ def webhook_instagram():
     if not data or "entry" not in data or not data["entry"]:
         print("❌ Invalid data format")
         return "OK", 200
-
-    process_comments(data)
-    return "OK", 200
-
-@app.route('/webhookinstagramdms', methods=['POST'])
-def webhook_instagram_dms():
-    data = request.get_json()
-    print("📥 Received data:", data)
-    time.sleep(2)  # Simulate processing delay
-    # Check if we have the expected structure
-    if not data or "entry" not in data or not data["entry"]:
-        print("❌ Invalid data format")
-        return "OK", 200
-
-    process_dms(data)
+    if "changes" in data["entry"][0] and data["entry"][0]["changes"]:
+        process_comments(data)
+    if "messaging" in data["entry"][0] and data["entry"][0]["messaging"]:
+        process_dms(data)
     return "OK", 200
 
 @app.route('/webhookthreads', methods=['POST'])
