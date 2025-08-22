@@ -12,11 +12,15 @@ PROCESSED_TUPLES_FILE = "processed_tuples.txt"
 # Load from environment variables for safety
 SUPABASE_URL_INSTAGRAM = os.environ['SUPABASE_URL_INSTAGRAM']
 SUPABASE_KEY_INSTAGRAM = os.environ['SUPABASE_KEY_INSTAGRAM']
+SUPABASE_URL_INSTAGRAM_DMS = os.environ['SUPABASE_URL_INSTAGRAM_DMS']
+SUPABASE_KEY_INSTAGRAM_DMS = os.environ['SUPABASE_KEY_INSTAGRAM_DMS']
 VERIFY_TOKEN_INSTAGRAM = os.environ['VERIFY_TOKEN_INSTAGRAM']
 USERNAME_INSTAGRAM = os.environ['USERNAME_INSTAGRAM']
 
 print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM)
 print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM)
+print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM_DMS)
+print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM_DMS)
 print("VERIFY_TOKEN_INSTAGRAM:", VERIFY_TOKEN_INSTAGRAM)
 print("USERNAME_INSTAGRAM:", USERNAME_INSTAGRAM)
 
@@ -31,6 +35,7 @@ print("VERIFY_TOKEN_THREADS:", VERIFY_TOKEN_THREADS)
 print("USERNAME_THREADS:", USERNAME_THREADS)
 
 supabase_instagram = create_client(SUPABASE_URL_INSTAGRAM, SUPABASE_KEY_INSTAGRAM)
+supabase_instagram_dms = create_client(SUPABASE_URL_INSTAGRAM_DMS, SUPABASE_KEY_INSTAGRAM_DMS)
 supabase_threads = create_client(SUPABASE_URL_THREADS, SUPABASE_KEY_THREADS)
 
 @app.route('/')
@@ -50,6 +55,26 @@ def terms_of_service():
 
 @app.route('/webhookinstagram', methods=['GET'])
 def verify_webhook_instagram():
+    print("🔎 Query params:", request.args)
+
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    print("🔍 Mode:", mode)
+    print("🔍 Token from Meta:", token)
+    print("🔍 Challenge:", challenge)
+    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_INSTAGRAM)
+
+    if mode == "subscribe" and token == VERIFY_TOKEN_INSTAGRAM:
+        print("✅ Webhook verified.")
+        return challenge, 200  # Must return challenge as plain text
+    else:
+        print("❌ Verification failed.")
+        return "Verification failed", 403
+
+@app.route('/webhookinstagramdms', methods=['GET'])
+def verify_webhook_instagram_dms():
     print("🔎 Query params:", request.args)
 
     mode = request.args.get("hub.mode")
@@ -143,6 +168,50 @@ def process_comments(data):
                 print("Change data:", change)
                 continue
 
+def process_dms(data):
+    # Handle Instagram Direct Messages (DMs)
+    print(f"📊 Processing {len(data['entry'])} entries")
+    for entry in data.get("entry", []):
+
+        # Extract the time value from the entry
+        timestamp = entry.get("time", "unknown")
+        # UTC+5:30 offset
+        IST = timezone(timedelta(hours=5, minutes=30))
+        timestamp = datetime.fromtimestamp(timestamp, tz=IST).isoformat()
+
+        for messaging_event in entry.get("messaging", []):
+            try:
+                message = messaging_event["message"]
+                sender_id = messaging_event["sender"]["id"]
+                username = messaging_event["sender"]["username"]
+                recipient_id = messaging_event["recipient"]["id"]
+                message_text = message["text"]
+                print(f"📩 DM from {sender_id}: {message_text}")
+                print(f"📩 Recipient ID: {recipient_id}")
+                print("📩 Message text:", message_text)
+
+                # Extract only the fields you care about
+                record = {
+                    "username": username,
+                    "sender_id": sender_id,
+                    "message_text": message_text,
+                    "recipient_id": recipient_id,
+                    "timestamp": timestamp,
+                    "replied": False
+                }
+
+                # Insert into Supabase table
+                response = supabase_instagram_dms.table("Instagram DMS").insert(record).execute()
+
+                # Optional: log errors
+                if response.data:
+                    print("Inserted:", response.data)
+                else:
+                    print("Error:", response)  
+
+            except Exception as e:
+                print(f"❌ Error processing DM: {str(e)}")
+                continue
 
 def load_processed_tuples():
     if not os.path.exists(PROCESSED_TUPLES_FILE):
@@ -235,6 +304,19 @@ def webhook_instagram():
         return "OK", 200
 
     process_comments(data)
+    return "OK", 200
+
+@app.route('/webhookinstagramdms', methods=['POST'])
+def webhook_instagram():
+    data = request.get_json()
+    print("📥 Received data:", data)
+    time.sleep(2)  # Simulate processing delay
+    # Check if we have the expected structure
+    if not data or "entry" not in data or not data["entry"]:
+        print("❌ Invalid data format")
+        return "OK", 200
+
+    process_dms(data)
     return "OK", 200
 
 @app.route('/webhookthreads', methods=['POST'])
