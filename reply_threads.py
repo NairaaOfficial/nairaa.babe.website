@@ -145,9 +145,9 @@ def publish_threads_reply(creation_id):
         return None
     
 def get_earliest_replies():
-    
-    # 1️⃣ Pick random batch size between 5 and 10
-    batch_size = random.randint(5, 10)
+
+    # 1️⃣ Pick random batch size between 10 and 15
+    batch_size = random.randint(10, 15)
     print(f"📋 Fetching {batch_size} earliest unreplied replies...")
 
     # 2️⃣ Fetch earliest unreplied replies
@@ -199,8 +199,8 @@ def process_replies(replies):
             print(f"❌ Failed to reply to user {reply_id}")
 
         # 6️⃣ Delay between replies
-        print("⏳ Waiting 100 seconds before next reply...")
-        time.sleep(100)
+        print("⏳ Waiting 20 seconds before next reply...")
+        time.sleep(20)
 
 def main():
     replies = get_earliest_replies()

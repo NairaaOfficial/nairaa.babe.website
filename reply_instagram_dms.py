@@ -35,7 +35,7 @@ DEFAULT_REPLY = [
     "Thanks for being awesome! 🌈"
 ]
 
-supabase_instagram = create_client(SUPABASE_URL_INSTAGRAM_DMS, SUPABASE_KEY_INSTAGRAM_DMS)
+supabase_instagram_dms = create_client(SUPABASE_URL_INSTAGRAM_DMS, SUPABASE_KEY_INSTAGRAM_DMS)
 
 def prompt(user_comment):
     """
@@ -97,14 +97,14 @@ def get_gemini_reply(user_comment):
         return random.choice(DEFAULT_REPLY)
 
 def get_earliest_dms():
-    
-    # 1️⃣ Pick random batch size between 5 and 10
-    batch_size = random.randint(5, 10)
+
+    # 1️⃣ Pick random batch size between 10 and 15
+    batch_size = random.randint(10, 15)
     print(f"📋 Fetching {batch_size} earliest unreplied dms...")
 
     # 2️⃣ Fetch earliest unreplied dms
     result = (
-        supabase_instagram.table("Instagram dms")
+        supabase_instagram_dms.table("Instagram DMS")
         .select("*")
         .eq("replied", False)
         .order("timestamp", desc=False)
@@ -177,6 +177,7 @@ def process_direct_message(dms):
                 print("Response:", response.status_code, response.text)
         except Exception as e:
             print(f"❌ Error processing DM: {str(e)}")
+        time.sleep(20)  # Sleep for 2 seconds between processing each DM
 
 def main():
     dms = get_earliest_dms()

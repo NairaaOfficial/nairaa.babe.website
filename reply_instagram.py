@@ -107,9 +107,9 @@ def reply_to_comment(comment_id, message):
     return requests.post(url, json=payload)
 
 def get_earliest_comments():
-    
-    # 1️⃣ Pick random batch size between 5 and 10
-    batch_size = random.randint(5, 10)
+
+    # 1️⃣ Pick random batch size between 10 and 15
+    batch_size = random.randint(10, 15)
     print(f"📋 Fetching {batch_size} earliest unreplied comments...")
 
     # 2️⃣ Fetch earliest unreplied comments
@@ -160,8 +160,8 @@ def process_comments(comments):
             print(f"❌ Failed to reply to comment {comment_id}")
 
         # 6️⃣ Delay between replies
-        print("⏳ Waiting 100 seconds before next reply...")
-        time.sleep(100)
+        print("⏳ Waiting 20 seconds before next reply...")
+        time.sleep(20)
 
 def main():
     comments = get_earliest_comments()
