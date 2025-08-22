@@ -307,7 +307,7 @@ def webhook_instagram():
     return "OK", 200
 
 @app.route('/webhookinstagramdms', methods=['POST'])
-def webhook_instagram():
+def webhook_instagram_dms():
     data = request.get_json()
     print("📥 Received data:", data)
     time.sleep(2)  # Simulate processing delay
