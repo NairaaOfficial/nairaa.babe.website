@@ -182,7 +182,6 @@ def process_dms(data):
             try:
                 message = messaging_event["message"]
                 sender_id = messaging_event["sender"]["id"]
-                username = get_username_from_sender_id(sender_id)
                 recipient_id = messaging_event["recipient"]["id"]
                 message_text = message["text"]
                 print(f"📩 DM from {sender_id}: {message_text}")
@@ -191,7 +190,6 @@ def process_dms(data):
 
                 # Extract only the fields you care about
                 record = {
-                    "username": username,
                     "sender_id": sender_id,
                     "message_text": message_text,
                     "recipient_id": recipient_id,
