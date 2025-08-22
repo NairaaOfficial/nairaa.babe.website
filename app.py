@@ -155,6 +155,8 @@ def process_dms(data):
 
         # Extract the time value from the entry
         timestamp = entry.get("time", "unknown")
+        if isinstance(timestamp, int):  # Ensure timestamp is an integer
+            timestamp = timestamp / 1000  # Convert milliseconds to seconds
         # UTC+5:30 offset
         IST = timezone(timedelta(hours=5, minutes=30))
         timestamp = datetime.fromtimestamp(timestamp, tz=IST).isoformat()
