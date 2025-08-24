@@ -165,29 +165,42 @@ def process_direct_message(dms):
             print(f"📩 Recipient ID: {recipient_id}")
             print("📩 Message text:", message_text)
             
-            if supabase_instagram_subscribers.table("Instagram Subscribers").select("subscriber_id").eq("subscriber_id", sender_id).execute().data:
-                if message_text:
-                    print(f"📩 DM from {sender_id}: {message_text}")
-                    reply = get_gemini_reply(message_text, GEMINI_API_KEY_INSTAGRAM)
-                    reply = filter_gemini_reply(reply)
-                    print("🤖 AI DM reply:", reply)
-                    # Post reply back to the message
-                    response = reply_to_dms(sender_id, reply)
-                    if response:
-                        print(f"✅ Replied to message {sender_id} with: {reply}")
-                    else:
-                        print(f"❌ Failed to reply to message {sender_id}")
-                    print("Response:", response.status_code, response.text)
-            else:
-                print(f"❌ {sender_id} is not a subscriber.")
+            if message_text:
+                print(f"📩 DM from {sender_id}: {message_text}")
+                reply = get_gemini_reply(message_text, GEMINI_API_KEY_INSTAGRAM)
+                reply = filter_gemini_reply(reply)
+                print("🤖 AI DM reply:", reply)
                 # Post reply back to the message
-                DEFAULT_REPLY = "Sorry, you are not a subscriber ❤️❤️❤️."
-                response = reply_to_dms(sender_id, DEFAULT_REPLY)
+                response = reply_to_dms(sender_id, reply)
                 if response:
-                    print(f"✅ Replied to message {sender_id} with: {DEFAULT_REPLY}")
+                    print(f"✅ Replied to message {sender_id} with: {reply}")
                 else:
                     print(f"❌ Failed to reply to message {sender_id}")
                 print("Response:", response.status_code, response.text)
+
+            # if supabase_instagram_subscribers.table("Instagram Subscribers").select("subscriber_id").eq("subscriber_id", sender_id).execute().data:
+            #     if message_text:
+            #         print(f"📩 DM from {sender_id}: {message_text}")
+            #         reply = get_gemini_reply(message_text, GEMINI_API_KEY_INSTAGRAM)
+            #         reply = filter_gemini_reply(reply)
+            #         print("🤖 AI DM reply:", reply)
+            #         # Post reply back to the message
+            #         response = reply_to_dms(sender_id, reply)
+            #         if response:
+            #             print(f"✅ Replied to message {sender_id} with: {reply}")
+            #         else:
+            #             print(f"❌ Failed to reply to message {sender_id}")
+            #         print("Response:", response.status_code, response.text)
+            # else:
+            #     print(f"❌ {sender_id} is not a subscriber.")
+            #     # Post reply back to the message
+            #     DEFAULT_REPLY = "Sorry, you are not a subscriber ❤️❤️❤️."
+            #     response = reply_to_dms(sender_id, DEFAULT_REPLY)
+            #     if response:
+            #         print(f"✅ Replied to message {sender_id} with: {DEFAULT_REPLY}")
+            #     else:
+            #         print(f"❌ Failed to reply to message {sender_id}")
+            #     print("Response:", response.status_code, response.text)
 
         except Exception as e:
             print(f"❌ Error processing DM: {str(e)}")
