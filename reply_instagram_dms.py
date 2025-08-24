@@ -167,7 +167,7 @@ def process_direct_message(dms):
             
             if message_text:
                 print(f"📩 DM from {sender_id}: {message_text}")
-                reply = get_gemini_reply(message_text, GEMINI_API_KEY_INSTAGRAM)
+                reply = get_gemini_reply(message_text)
                 reply = filter_gemini_reply(reply)
                 print("🤖 AI DM reply:", reply)
                 # Post reply back to the message
