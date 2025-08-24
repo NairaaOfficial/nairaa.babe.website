@@ -27,6 +27,9 @@ print("VERIFY_TOKEN_INSTAGRAM:", VERIFY_TOKEN_INSTAGRAM)
 print("USERNAME_INSTAGRAM:", USERNAME_INSTAGRAM)
 print("INSTAGRAM_ACCESS_TOKEN:", INSTAGRAM_ACCESS_TOKEN)
 
+VERIFY_TOKEN_FACEBOOK = os.environ['VERIFY_TOKEN_FACEBOOK']
+print("VERIFY_TOKEN_FACEBOOK:", VERIFY_TOKEN_FACEBOOK)
+
 SUPABASE_URL_THREADS = os.environ['SUPABASE_URL_THREADS']
 SUPABASE_KEY_THREADS = os.environ['SUPABASE_KEY_THREADS']
 VERIFY_TOKEN_THREADS = os.environ['VERIFY_TOKEN_THREADS']
@@ -76,6 +79,26 @@ def verify_webhook_instagram():
         print("❌ Verification failed.")
         return "Verification failed", 403
 
+@app.route('/webhookfacebook', methods=['GET'])
+def verify_webhook_facebook():
+    print("🔎 Query params:", request.args)
+
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    print("🔍 Mode:", mode)
+    print("🔍 Token from Meta:", token)
+    print("🔍 Challenge:", challenge)
+    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_FACEBOOK)
+
+    if mode == "subscribe" and token == VERIFY_TOKEN_FACEBOOK:
+        print("✅ Webhook verified.")
+        return challenge, 200  # Must return challenge as plain text
+    else:
+        print("❌ Verification failed.")
+        return "Verification failed", 403
+    
 @app.route('/webhookthreads', methods=['GET'])
 def verify_webhook_threads():
     print("🔎 Query params:", request.args)
@@ -210,6 +233,11 @@ def process_dms(data):
                 print(f"❌ Error processing DM: {str(e)}")
                 continue
 
+def process_fb_comments(data):
+    return  # Placeholder for Facebook comments processing
+def process_fb_dms(data):
+    return  # Placeholder for Facebook DMs processing
+
 def load_processed_tuples():
     if not os.path.exists(PROCESSED_TUPLES_FILE):
         return set()
@@ -303,6 +331,21 @@ def webhook_instagram():
         process_comments(data)
     if "messaging" in data["entry"][0] and data["entry"][0]["messaging"]:
         process_dms(data)
+    return "OK", 200
+
+@app.route('/webhookfacebook', methods=['POST'])
+def webhook_facebook():
+    data = request.get_json()
+    print("📥 Received data:", data)
+    time.sleep(2)  # Simulate processing delay
+    # Check if we have the expected structure
+    if not data or "entry" not in data or not data["entry"]:
+        print("❌ Invalid data format")
+        return "OK", 200
+    if "changes" in data["entry"][0] and data["entry"][0]["changes"]:
+        process_fb_comments(data)
+    if "messaging" in data["entry"][0] and data["entry"][0]["messaging"]:
+        process_fb_dms(data)
     return "OK", 200
 
 @app.route('/webhookthreads', methods=['POST'])
