@@ -7,8 +7,8 @@ from supabase import create_client
 INSTAGRAM_ACCESS_TOKEN = os.environ['INSTAGRAM_ACCESS_TOKEN']
 GEMINI_API_KEY_INSTAGRAM = os.environ['GEMINI_API_KEY_INSTAGRAM']
 INSTAGRAM_USER_ID = os.environ['INSTAGRAM_USER_ID']
-SUPABASE_URL_INSTAGRAM_DMS = os.environ["SUPABASE_URL_INSTAGRAM_DMS"]
-SUPABASE_KEY_INSTAGRAM_DMS = os.environ["SUPABASE_KEY_INSTAGRAM_DMS"]
+SUPABASE_URL_INSTAGRAM_DMS = os.environ["SUPABASE_URL_INSTAGRAM"]
+SUPABASE_KEY_INSTAGRAM_DMS = os.environ["SUPABASE_KEY_INSTAGRAM"]
 API_VERSION_INSTAGRAM = os.environ['API_VERSION_INSTAGRAM']
 BASE_URL_INSTAGRAM = os.environ['BASE_URL_INSTAGRAM']
 
@@ -99,8 +99,8 @@ def get_gemini_reply(user_comment):
 
 def get_earliest_dms():
 
-    # 1️⃣ Pick random batch size between 10 and 15
-    batch_size = random.randint(10, 15)
+    # 1️⃣ Pick random batch size between 1 and 2
+    batch_size = random.randint(1, 2)
     print(f"📋 Fetching {batch_size} earliest unreplied dms...")
 
     # 2️⃣ Fetch earliest unreplied dms
