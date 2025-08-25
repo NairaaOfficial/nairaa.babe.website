@@ -2,8 +2,8 @@ name: Reply to Thread Replies
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/10 * * * *'
+  # schedule:
+  #   - cron: '*/10 * * * *'
   
 jobs:
   run-script:
