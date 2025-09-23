@@ -17,7 +17,6 @@ SUPABASE_URL_INSTAGRAM_DMS = os.environ['SUPABASE_URL_INSTAGRAM_DMS']
 SUPABASE_KEY_INSTAGRAM_DMS = os.environ['SUPABASE_KEY_INSTAGRAM_DMS']
 VERIFY_TOKEN_INSTAGRAM = os.environ['VERIFY_TOKEN_INSTAGRAM']
 USERNAME_INSTAGRAM = os.environ['USERNAME_INSTAGRAM']
-INSTAGRAM_ACCESS_TOKEN = os.environ['INSTAGRAM_ACCESS_TOKEN']
 
 print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM)
 print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM)
@@ -25,7 +24,6 @@ print("SUPABASE_URL_INSTAGRAM_DMS:", SUPABASE_URL_INSTAGRAM_DMS)
 print("SUPABASE_KEY_INSTAGRAM_DMS:", SUPABASE_KEY_INSTAGRAM_DMS)
 print("VERIFY_TOKEN_INSTAGRAM:", VERIFY_TOKEN_INSTAGRAM)
 print("USERNAME_INSTAGRAM:", USERNAME_INSTAGRAM)
-print("INSTAGRAM_ACCESS_TOKEN:", INSTAGRAM_ACCESS_TOKEN)
 
 VERIFY_TOKEN_FACEBOOK = os.environ['VERIFY_TOKEN_FACEBOOK']
 print("VERIFY_TOKEN_FACEBOOK:", VERIFY_TOKEN_FACEBOOK)
@@ -173,20 +171,6 @@ def process_comments(data):
                 print(f"❌ Error processing comment: Missing field {str(e)}")
                 print("Change data:", change)
                 continue
-
-def get_username_from_sender_id(sender_id):
-    url = f"https://graph.facebook.com/v23.0/{sender_id}"
-    params = {
-        "fields": "name,username",
-        "access_token": INSTAGRAM_ACCESS_TOKEN
-    }
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        data = response.json()
-        return data.get("username")  # Returns the username
-    else:
-        print(f"Error fetching username: {response.status_code}, {response.text}")
-        return None
     
 def process_dms(data):
     # Handle Instagram Direct Messages (DMs)

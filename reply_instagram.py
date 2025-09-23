@@ -5,7 +5,7 @@ import requests
 from supabase import create_client
 
 INSTAGRAM_ACCESS_TOKEN = os.environ['INSTAGRAM_ACCESS_TOKEN']
-GEMINI_API_KEY_INSTAGRAM = os.environ['GEMINI_API_KEY_INSTAGRAM']
+GEMINI_API_KEYS_INSTAGRAM = os.environ['GEMINI_API_KEYS_INSTAGRAM']
 INSTAGRAM_USER_ID = os.environ['INSTAGRAM_USER_ID']
 SUPABASE_URL_INSTAGRAM = os.environ["SUPABASE_URL_INSTAGRAM"]
 SUPABASE_KEY_INSTAGRAM = os.environ["SUPABASE_KEY_INSTAGRAM"]
@@ -13,7 +13,7 @@ API_VERSION_INSTAGRAM = os.environ['API_VERSION_INSTAGRAM']
 BASE_URL_INSTAGRAM = os.environ['BASE_URL_INSTAGRAM']
 
 print("INSTAGRAM_ACCESS_TOKEN:", INSTAGRAM_ACCESS_TOKEN)
-print("GEMINI_API_KEY_INSTAGRAM:", GEMINI_API_KEY_INSTAGRAM)
+print("GEMINI_API_KEYS_INSTAGRAM:", GEMINI_API_KEYS_INSTAGRAM)
 print("INSTAGRAM_USER_ID:", INSTAGRAM_USER_ID)
 print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM)
 print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM)
@@ -36,6 +36,17 @@ DEFAULT_REPLY = [
 ]
 
 supabase_instagram = create_client(SUPABASE_URL_INSTAGRAM, SUPABASE_KEY_INSTAGRAM)
+
+# Load multiple Gemini API keys from environment variables
+GEMINI_API_KEYS_INSTAGRAM = GEMINI_API_KEYS_INSTAGRAM.split(',')
+
+current_key_index = 0
+
+# Function to switch to the next API key
+def switch_gemini_key():
+    global current_key_index
+    current_key_index = (current_key_index + 1) % len(GEMINI_API_KEYS_INSTAGRAM)
+    return GEMINI_API_KEYS_INSTAGRAM[current_key_index]
 
 def prompt(user_comment):
     """
@@ -67,7 +78,7 @@ def filter_gemini_reply(text):
 def get_gemini_reply(user_comment):
     """
     Uses Google Gemini API to generate text based on the input prompt.
-    Returns the generated text as a string.
+    Handles rate limiting by switching API keys.
     """
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
     headers = {"Content-Type": "application/json"}
@@ -83,16 +94,26 @@ def get_gemini_reply(user_comment):
         ]
     }
 
-    params = {"key": GEMINI_API_KEY_INSTAGRAM}
-    response = requests.post(url, headers=headers, params=params, json=payload)
-    if response.status_code == 200:
-        result = response.json()
-        try:
-            return result["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError):
-            return random.choice(DEFAULT_REPLY)
-    else:
-        return random.choice(DEFAULT_REPLY)
+    for _ in range(len(GEMINI_API_KEYS_INSTAGRAM)):
+        current_key = GEMINI_API_KEYS_INSTAGRAM[current_key_index]
+        params = {"key": current_key}
+        response = requests.post(url, headers=headers, params=params, json=payload)
+
+        if response.status_code == 200:
+            result = response.json()
+            try:
+                return result["candidates"][0]["content"]["parts"][0]["text"]
+            except (KeyError, IndexError):
+                return random.choice(DEFAULT_REPLY)
+        elif response.status_code == 429:  # Rate limit error
+            print(f"Rate limit reached for key: {current_key}. Switching to next key.")
+            switch_gemini_key()
+        else:
+            print(f"Error with key {current_key}: {response.status_code}. Trying next key.")
+            switch_gemini_key()
+
+    # If all keys fail, return a default reply
+    return random.choice(DEFAULT_REPLY)
     
 def reply_to_comment(comment_id, message):
     """
@@ -158,6 +179,8 @@ def process_comments(comments):
             supabase_instagram.table("Instagram Comments").update({"replied": True}).eq("comment_id", comment_id).execute()
         else:
             print(f"❌ Failed to reply to comment {comment_id}")
+            print(f"🗑️ Deleting comment {comment_id} from Supabase.")
+            supabase_instagram.table("Instagram Comments").delete().eq("comment_id", comment_id).execute()
 
         # 6️⃣ Delay between replies
         print("⏳ Waiting 20 seconds before next reply...")

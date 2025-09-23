@@ -6,7 +6,7 @@ from supabase import create_client
 
 THREADS_ACCESS_TOKEN = os.environ['THREADS_ACCESS_TOKEN']
 THREADS_USER_ID = os.environ['THREADS_USER_ID']
-GEMINI_API_KEY_THREADS = os.environ['GEMINI_API_KEY_THREADS']
+GEMINI_API_KEYS_THREADS = os.environ['GEMINI_API_KEYS_THREADS']
 SUPABASE_URL_THREADS = os.environ["SUPABASE_URL_THREADS"]
 SUPABASE_KEY_THREADS = os.environ["SUPABASE_KEY_THREADS"]
 API_VERSION_THREADS = os.environ['API_VERSION_THREADS']
@@ -14,7 +14,7 @@ BASE_URL_THREADS = os.environ['BASE_URL_THREADS']
 
 print("THREADS_ACCESS_TOKEN:", THREADS_ACCESS_TOKEN)
 print("THREADS_USER_ID:", THREADS_USER_ID)
-print("GEMINI_API_KEY_THREADS:", GEMINI_API_KEY_THREADS)
+print("GEMINI_API_KEYS_THREADS:", GEMINI_API_KEYS_THREADS)
 print("SUPABASE_URL_THREADS:", SUPABASE_URL_THREADS)
 print("SUPABASE_KEY_THREADS:", SUPABASE_KEY_THREADS)
 print("API_VERSION_THREADS:", API_VERSION_THREADS)
@@ -36,6 +36,17 @@ DEFAULT_REPLY = [
 ]
 
 supabase_threads = create_client(SUPABASE_URL_THREADS, SUPABASE_KEY_THREADS)
+
+# Load multiple Gemini API keys from environment variables
+GEMINI_API_KEYS_THREADS = GEMINI_API_KEYS_THREADS.split(',')
+
+current_key_index = 0
+
+# Function to switch to the next API key
+def switch_gemini_key():
+    global current_key_index
+    current_key_index = (current_key_index + 1) % len(GEMINI_API_KEYS_THREADS)
+    return GEMINI_API_KEYS_THREADS[current_key_index]
 
 def prompt(user_comment):
     """
@@ -83,16 +94,26 @@ def get_gemini_reply(user_comment):
         ]
     }
 
-    params = {"key": GEMINI_API_KEY_THREADS}
-    response = requests.post(url, headers=headers, params=params, json=payload)
-    if response.status_code == 200:
-        result = response.json()
-        try:
-            return result["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError):
-            return random.choice(DEFAULT_REPLY)
-    else:
-        return random.choice(DEFAULT_REPLY)
+    for _ in range(len(GEMINI_API_KEYS_THREADS)):
+        current_key = GEMINI_API_KEYS_THREADS[current_key_index]
+        params = {"key": current_key}
+        response = requests.post(url, headers=headers, params=params, json=payload)
+
+        if response.status_code == 200:
+            result = response.json()
+            try:
+                return result["candidates"][0]["content"]["parts"][0]["text"]
+            except (KeyError, IndexError):
+                return random.choice(DEFAULT_REPLY)
+        elif response.status_code == 429:  # Rate limit error
+            print(f"Rate limit reached for key: {current_key}. Switching to next key.")
+            switch_gemini_key()
+        else:
+            print(f"Error with key {current_key}: {response.status_code}. Trying next key.")
+            switch_gemini_key()
+
+    # If all keys fail, return a default reply
+    return random.choice(DEFAULT_REPLY)
 
 def create_reply_container(text, reply_to_id):
     """
@@ -196,7 +217,9 @@ def process_replies(replies):
             # 5️⃣ Mark as replied
             supabase_threads.table("Thread Replies").update({"replied": True}).eq("reply_id", reply_id).execute()
         else:
-            print(f"❌ Failed to reply to user {reply_id}")
+            print(f"❌ Failed to reply to reply {reply_id}")
+            print(f"🗑️ Deleting reply {reply_id} from Supabase.")
+            supabase_threads.table("Thread Replies").delete().eq("reply_id", reply_id).execute()
 
         # 6️⃣ Delay between replies
         print("⏳ Waiting 20 seconds before next reply...")
@@ -210,8 +233,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-            

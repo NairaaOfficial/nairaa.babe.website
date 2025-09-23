@@ -2,8 +2,8 @@ name: Reply to Instagram Comments
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: '*/10 * * * *'
+  schedule:
+    - cron: '*/1 * * * *'
   
 jobs:
   run-script:
@@ -35,7 +35,7 @@ jobs:
         env:
             INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
             INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
-            GEMINI_API_KEY_INSTAGRAM: ${{ secrets.GEMINI_API_KEY_INSTAGRAM }}
+            GEMINI_API_KEYS_INSTAGRAM: ${{ secrets.GEMINI_API_KEYS_INSTAGRAM }}
             SUPABASE_URL_INSTAGRAM: ${{ secrets.SUPABASE_URL_INSTAGRAM }}
             SUPABASE_KEY_INSTAGRAM: ${{ secrets.SUPABASE_KEY_INSTAGRAM }}
             API_VERSION_INSTAGRAM: ${{ secrets.API_VERSION_INSTAGRAM }}
