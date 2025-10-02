@@ -3,7 +3,7 @@ name: Reply to Thread Replies
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/1 * * * *'
+    - cron: '*/10 * * * *'
   
 jobs:
   run-script:
