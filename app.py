@@ -57,11 +57,6 @@ def terms_of_service():
     """Terms of Service page."""
     return render_template('terms_of_service.html')
 
-@app.route('/v2kx04ceedv5rzsksuvo9qxi2ejq1m.html')
-def facebook_domain_verification():
-    """Facebook domain verification file."""
-    return 'v2kx04ceedv5rzsksuvo9qxi2ejq1m', 200, {'Content-Type': 'text/html'}
-
 @app.route('/webhookinstagram', methods=['GET'])
 def verify_webhook_instagram():
     print("🔎 Query params:", request.args)
