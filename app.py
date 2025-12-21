@@ -198,16 +198,14 @@ print("VERIFY_TOKEN_FACEBOOK:", VERIFY_TOKEN_FACEBOOK)
 print("USERNAME_FACEBOOK:", USERNAME_FACEBOOK)
 
 # Facebook Page Configuration
-FACEBOOK_ACCESS_TOKEN = os.getenv('FACEBOOK_ACCESS_TOKEN')
-FACEBOOK_PAGE_ID = os.getenv('FACEBOOK_PAGE_ID')
-FACEBOOK_USERNAME = os.getenv('FACEBOOK_USERNAME')
-BASE_URL = os.getenv('BASE_URL')
-API_VERSION = os.getenv('API_VERSION')
+FACEBOOK_ACCESS_TOKEN = os.environ['FACEBOOK_ACCESS_TOKEN']
+FACEBOOK_PAGE_ID = os.environ['FACEBOOK_PAGE_ID']
+BASE_URL_FACEBOOK = os.environ['BASE_URL_FACEBOOK']
+API_VERSION_FACEBOOK = os.environ['API_VERSION_FACEBOOK']
 print("FACEBOOK_ACCESS_TOKEN:", FACEBOOK_ACCESS_TOKEN)
 print("FACEBOOK_PAGE_ID:", FACEBOOK_PAGE_ID)
-print("FACEBOOK_USERNAME:", FACEBOOK_USERNAME)
-print("BASE_URL:", BASE_URL)
-print("API_VERSION:", API_VERSION)
+print("BASE_URL_FACEBOOK:", BASE_URL_FACEBOOK)
+print("API_VERSION_FACEBOOK:", API_VERSION_FACEBOOK)
 
 supabase_facebook = create_client(SUPABASE_URL_FACEBOOK, SUPABASE_KEY_FACEBOOK)
 
@@ -257,7 +255,7 @@ def process_facebook_comments(data):
                     print(f"💬 Comment ID: {comment_id}")
                     
                     # Skip if the comment is from the Page itself (to avoid infinite loop)
-                    if user_name == FACEBOOK_USERNAME:
+                    if user_name == USERNAME_FACEBOOK:
                         print(f"👤 Skipping our own Facebook Page comment from {user_name}")
                         continue
                     
@@ -300,7 +298,7 @@ def subscribe_facebook_page():
     if not FACEBOOK_PAGE_ID or not FACEBOOK_ACCESS_TOKEN:
         return {"error": "FACEBOOK_PAGE_ID and FACEBOOK_ACCESS_TOKEN must be configured"}, 400
     
-    url = f"https://{BASE_URL}/{API_VERSION}/{FACEBOOK_PAGE_ID}/subscribed_apps"
+    url = f"https://{BASE_URL_FACEBOOK}/{API_VERSION_FACEBOOK}/{FACEBOOK_PAGE_ID}/subscribed_apps"
     params = {
         "subscribed_fields": "feed",
         "access_token": FACEBOOK_ACCESS_TOKEN
@@ -322,7 +320,7 @@ def check_facebook_page_subscription():
     if not FACEBOOK_PAGE_ID or not FACEBOOK_ACCESS_TOKEN:
         return {"error": "FACEBOOK_PAGE_ID and FACEBOOK_ACCESS_TOKEN must be configured"}, 400
     
-    url = f"https://{BASE_URL}/{API_VERSION}/{FACEBOOK_PAGE_ID}/subscribed_apps"
+    url = f"https://{BASE_URL_FACEBOOK}/{API_VERSION_FACEBOOK}/{FACEBOOK_PAGE_ID}/subscribed_apps"
     params = {
         "access_token": FACEBOOK_ACCESS_TOKEN
     }
@@ -342,14 +340,14 @@ def debug_facebook_token():
     
     # Check what the token represents
 
-    url = f"https://{BASE_URL}/{API_VERSION}/me"    
+    url = f"https://{BASE_URL_FACEBOOK}/{API_VERSION_FACEBOOK}/me"    
     params = {"access_token": FACEBOOK_ACCESS_TOKEN}
     response = requests.get(url, params=params)
     
     token_info = response.json() if response.status_code == 200 else {"error": response.text}
     
     # Check token permissions
-    debug_url = f"https://{BASE_URL}/{API_VERSION}/debug_token"
+    debug_url = f"https://{BASE_URL_FACEBOOK}/{API_VERSION_FACEBOOK}/debug_token"
     debug_params = {
         "input_token": FACEBOOK_ACCESS_TOKEN,
         "access_token": FACEBOOK_ACCESS_TOKEN
