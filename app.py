@@ -10,38 +10,6 @@ app.secret_key = '12345678'  # Replace with a secure key
 
 PROCESSED_TUPLES_FILE = "processed_tuples.txt"
 
-# Load from environment variables for safety
-SUPABASE_URL_INSTAGRAM = os.environ['SUPABASE_URL_INSTAGRAM']
-SUPABASE_KEY_INSTAGRAM = os.environ['SUPABASE_KEY_INSTAGRAM']
-SUPABASE_URL_INSTAGRAM_DMS = os.environ['SUPABASE_URL_INSTAGRAM_DMS']
-SUPABASE_KEY_INSTAGRAM_DMS = os.environ['SUPABASE_KEY_INSTAGRAM_DMS']
-VERIFY_TOKEN_INSTAGRAM = os.environ['VERIFY_TOKEN_INSTAGRAM']
-USERNAME_INSTAGRAM = os.environ['USERNAME_INSTAGRAM']
-
-print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM)
-print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM)
-print("SUPABASE_URL_INSTAGRAM_DMS:", SUPABASE_URL_INSTAGRAM_DMS)
-print("SUPABASE_KEY_INSTAGRAM_DMS:", SUPABASE_KEY_INSTAGRAM_DMS)
-print("VERIFY_TOKEN_INSTAGRAM:", VERIFY_TOKEN_INSTAGRAM)
-print("USERNAME_INSTAGRAM:", USERNAME_INSTAGRAM)
-
-VERIFY_TOKEN_FACEBOOK = os.environ['VERIFY_TOKEN_FACEBOOK']
-print("VERIFY_TOKEN_FACEBOOK:", VERIFY_TOKEN_FACEBOOK)
-
-SUPABASE_URL_THREADS = os.environ['SUPABASE_URL_THREADS']
-SUPABASE_KEY_THREADS = os.environ['SUPABASE_KEY_THREADS']
-VERIFY_TOKEN_THREADS = os.environ['VERIFY_TOKEN_THREADS']
-USERNAME_THREADS = os.environ['USERNAME_THREADS']
-
-print("SUPABASE_URL_THREADS:", SUPABASE_URL_THREADS)
-print("SUPABASE_KEY_THREADS:", SUPABASE_KEY_THREADS)
-print("VERIFY_TOKEN_THREADS:", VERIFY_TOKEN_THREADS)
-print("USERNAME_THREADS:", USERNAME_THREADS)
-
-supabase_instagram = create_client(SUPABASE_URL_INSTAGRAM, SUPABASE_KEY_INSTAGRAM)
-supabase_instagram_dms = create_client(SUPABASE_URL_INSTAGRAM_DMS, SUPABASE_KEY_INSTAGRAM_DMS)
-supabase_threads = create_client(SUPABASE_URL_THREADS, SUPABASE_KEY_THREADS)
-
 @app.route('/')
 def home():
     """Home page with app description and navigation."""
@@ -57,67 +25,31 @@ def terms_of_service():
     """Terms of Service page."""
     return render_template('terms_of_service.html')
 
-@app.route('/webhookinstagram', methods=['GET'])
-def verify_webhook_instagram():
-    print("🔎 Query params:", request.args)
+####################################################################################################
+##########################################  INSTAGRAM  #############################################
+####################################################################################################
 
-    mode = request.args.get("hub.mode")
-    token = request.args.get("hub.verify_token")
-    challenge = request.args.get("hub.challenge")
+SUPABASE_URL_INSTAGRAM = os.environ['SUPABASE_URL_INSTAGRAM']
+SUPABASE_KEY_INSTAGRAM = os.environ['SUPABASE_KEY_INSTAGRAM']
+SUPABASE_URL_INSTAGRAM_DMS = os.environ['SUPABASE_URL_INSTAGRAM_DMS']
+SUPABASE_KEY_INSTAGRAM_DMS = os.environ['SUPABASE_KEY_INSTAGRAM_DMS']
+VERIFY_TOKEN_INSTAGRAM = os.environ['VERIFY_TOKEN_INSTAGRAM']
+USERNAME_INSTAGRAM = os.environ['USERNAME_INSTAGRAM']
 
-    print("🔍 Mode:", mode)
-    print("🔍 Token from Meta:", token)
-    print("🔍 Challenge:", challenge)
-    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_INSTAGRAM)
+print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM)
+print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM)
+print("SUPABASE_URL_INSTAGRAM_DMS:", SUPABASE_URL_INSTAGRAM_DMS)
+print("SUPABASE_KEY_INSTAGRAM_DMS:", SUPABASE_KEY_INSTAGRAM_DMS)
+print("VERIFY_TOKEN_INSTAGRAM:", VERIFY_TOKEN_INSTAGRAM)
+print("USERNAME_INSTAGRAM:", USERNAME_INSTAGRAM)
 
-    if mode == "subscribe" and token == VERIFY_TOKEN_INSTAGRAM:
-        print("✅ Webhook verified.")
-        return challenge, 200  # Must return challenge as plain text
-    else:
-        print("❌ Verification failed.")
-        return "Verification failed", 403
+supabase_instagram = create_client(SUPABASE_URL_INSTAGRAM, SUPABASE_KEY_INSTAGRAM)
+supabase_instagram_dms = create_client(SUPABASE_URL_INSTAGRAM_DMS, SUPABASE_KEY_INSTAGRAM_DMS)
 
-@app.route('/webhookfacebook', methods=['GET'])
-def verify_webhook_facebook():
-    print("🔎 Query params:", request.args)
-
-    mode = request.args.get("hub.mode")
-    token = request.args.get("hub.verify_token")
-    challenge = request.args.get("hub.challenge")
-
-    print("🔍 Mode:", mode)
-    print("🔍 Token from Meta:", token)
-    print("🔍 Challenge:", challenge)
-    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_FACEBOOK)
-
-    if mode == "subscribe" and token == VERIFY_TOKEN_FACEBOOK:
-        print("✅ Webhook verified.")
-        return challenge, 200  # Must return challenge as plain text
-    else:
-        print("❌ Verification failed.")
-        return "Verification failed", 403
-    
-@app.route('/webhookthreads', methods=['GET'])
-def verify_webhook_threads():
-    print("🔎 Query params:", request.args)
-
-    mode = request.args.get("hub.mode")
-    token = request.args.get("hub.verify_token")
-    challenge = request.args.get("hub.challenge")
-
-    print("🔍 Mode:", mode)
-    print("🔍 Token from Meta:", token)
-    print("🔍 Challenge:", challenge)
-    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_THREADS)
-
-    if mode == "subscribe" and token == VERIFY_TOKEN_THREADS:
-        print("✅ Webhook verified.")
-        return challenge, 200  # Must return challenge as plain text
-    else:
-        print("❌ Verification failed.")
-        return "Verification failed", 403
-
-def process_comments(data):
+def process_instagram_comments(data):
+    """
+    Handle Instagram Page webhook notifications for comments.
+    """
     # Process each entry in the webhook data
     print(f"📊 Processing {len(data['entry'])} entries")
     for entry in data.get("entry", []):
@@ -172,7 +104,7 @@ def process_comments(data):
                 print("Change data:", change)
                 continue
     
-def process_dms(data):
+def process_instagram_dms(data):
     # Handle Instagram Direct Messages (DMs)
     print(f"📊 Processing {len(data['entry'])} entries")
     for entry in data.get("entry", []):
@@ -217,10 +149,269 @@ def process_dms(data):
                 print(f"❌ Error processing DM: {str(e)}")
                 continue
 
-def process_fb_comments(data):
-    return  # Placeholder for Facebook comments processing
-def process_fb_dms(data):
+@app.route('/webhookinstagram', methods=['GET'])
+def verify_webhook_instagram():
+    print("🔎 Query params:", request.args)
+
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    print("🔍 Mode:", mode)
+    print("🔍 Token from Meta:", token)
+    print("🔍 Challenge:", challenge)
+    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_INSTAGRAM)
+
+    if mode == "subscribe" and token == VERIFY_TOKEN_INSTAGRAM:
+        print("✅ Webhook verified.")
+        return challenge, 200  # Must return challenge as plain text
+    else:
+        print("❌ Verification failed.")
+        return "Verification failed", 403
+
+@app.route('/webhookinstagram', methods=['POST'])
+def webhook_instagram():
+    data = request.get_json()
+    print("📥 Received data:", data)
+    time.sleep(2)  # Simulate processing delay
+    # Check if we have the expected structure
+    if not data or "entry" not in data or not data["entry"]:
+        print("❌ Invalid data format")
+        return "OK", 200
+    if "changes" in data["entry"][0] and data["entry"][0]["changes"]:
+        process_instagram_comments(data)
+    if "messaging" in data["entry"][0] and data["entry"][0]["messaging"]:
+        process_instagram_dms(data)
+    return "OK", 200
+
+#####################################################################################################
+##########################################  FACEBOOK  ###############################################
+#####################################################################################################
+
+SUPABASE_URL_FACEBOOK = os.environ['SUPABASE_URL_FACEBOOK']
+SUPABASE_KEY_FACEBOOK = os.environ['SUPABASE_KEY_FACEBOOK']
+VERIFY_TOKEN_FACEBOOK = os.environ['VERIFY_TOKEN_FACEBOOK']
+USERNAME_FACEBOOK = os.environ['USERNAME_FACEBOOK']
+print("SUPABASE_URL_FACEBOOK:", SUPABASE_URL_FACEBOOK)
+print("SUPABASE_KEY_FACEBOOK:", SUPABASE_KEY_FACEBOOK)
+print("VERIFY_TOKEN_FACEBOOK:", VERIFY_TOKEN_FACEBOOK)
+print("USERNAME_FACEBOOK:", USERNAME_FACEBOOK)
+
+# Facebook Page Configuration
+FACEBOOK_ACCESS_TOKEN = os.getenv('FACEBOOK_ACCESS_TOKEN')
+FACEBOOK_PAGE_ID = os.getenv('FACEBOOK_PAGE_ID')
+FACEBOOK_USERNAME = os.getenv('FACEBOOK_USERNAME')
+BASE_URL = os.getenv('BASE_URL')
+API_VERSION = os.getenv('API_VERSION')
+print("FACEBOOK_ACCESS_TOKEN:", FACEBOOK_ACCESS_TOKEN)
+print("FACEBOOK_PAGE_ID:", FACEBOOK_PAGE_ID)
+print("FACEBOOK_USERNAME:", FACEBOOK_USERNAME)
+print("BASE_URL:", BASE_URL)
+print("API_VERSION:", API_VERSION)
+
+supabase_facebook = create_client(SUPABASE_URL_FACEBOOK, SUPABASE_KEY_FACEBOOK)
+
+def process_facebook_comments(data):
+    """
+    Handle Facebook Page webhook notifications for feed events.
+    """
+    print("📘 Processing Facebook Page webhook")
+    
+    # Process each entry in the webhook data
+    print(f"📊 Processing {len(data['entry'])} entries")
+    for entry in data.get("entry", []):
+        if "changes" not in entry or not entry["changes"]:
+            print("⚠️ No changes in entry:", entry.get("id", "unknown"))
+            continue
+        # Extract the time value from the entry
+        timestamp = entry.get("time", "unknown")
+        # UTC+5:30 offset
+        IST = timezone(timedelta(hours=5, minutes=30))
+        timestamp = datetime.fromtimestamp(timestamp, tz=IST).isoformat()
+        # Process each change in the entry
+        print(f"📊 Processing {len(entry['changes'])} changes in entry {entry.get('id', 'unknown')}")
+        for change in entry.get("changes", []):
+            # Only process feed changes
+            if change["field"] != "feed":
+                print(f"ℹ️ Ignoring non-feed field: {change['field']}")
+                continue
+                
+            try:
+                value = change["value"]
+                item_type = value.get("item", "")
+                verb = value.get("verb", "")
+                
+                print(f"📋 Feed event - Item: {item_type}, Verb: {verb}")
+                
+                # Only process comments
+                if item_type == "comment" and verb == "add":
+                    # Someone commented on a post
+                    comment_id = value.get("comment_id")
+                    post_id = value.get("post_id")
+                    message = value.get("message", "")
+                    from_user = value.get("from", {})
+                    user_name = from_user.get("name", "Unknown")
+                    user_id = from_user.get("id", "")  # Get PSID for @mention
+                    
+                    print(f"💬 {user_name} (ID: {user_id}) commented: {message}")
+                    print(f"💬 Comment ID: {comment_id}")
+                    
+                    # Skip if the comment is from the Page itself (to avoid infinite loop)
+                    if user_name == FACEBOOK_USERNAME:
+                        print(f"👤 Skipping our own Facebook Page comment from {user_name}")
+                        continue
+                    
+                    # Extract only the fields you care about
+                    record = {
+                        "username": user_name,
+                        "comment_id": comment_id,
+                        "comment": message,
+                        "timestamp": timestamp,
+                        "replied": False,
+                        "user_id": user_id
+                    }
+                    
+                     # Insert into Supabase table
+                    response = supabase_facebook.table("Facebook Comments").insert(record).execute()
+
+                    # Optional: log errors
+                    if response.data:
+                        print("Inserted:", response.data)
+                    else:
+                        print("Error:", response)    
+
+                else:
+                    print(f"ℹ️ Ignoring feed event: {item_type} - {verb}")
+                    
+            except KeyError as e:
+                print(f"❌ Error processing feed event: Missing field {str(e)}")
+                print("Change data:", change)
+                continue
+
+def process_facebook_dms(data):
     return  # Placeholder for Facebook DMs processing
+
+@app.route('/subscribe-page', methods=['GET', 'POST'])
+def subscribe_facebook_page():
+    """
+    Subscribe the Facebook Page to the app for feed webhooks.
+    This needs to be called once to enable webhook notifications.
+    """
+    if not FACEBOOK_PAGE_ID or not FACEBOOK_ACCESS_TOKEN:
+        return {"error": "FACEBOOK_PAGE_ID and FACEBOOK_ACCESS_TOKEN must be configured"}, 400
+    
+    url = f"https://{BASE_URL}/{API_VERSION}/{FACEBOOK_PAGE_ID}/subscribed_apps"
+    params = {
+        "subscribed_fields": "feed",
+        "access_token": FACEBOOK_ACCESS_TOKEN
+    }
+    
+    response = requests.post(url, params=params)
+    
+    if response.status_code == 200:
+        result = response.json()
+        return {"success": True, "message": "Page subscribed to app successfully", "data": result}, 200
+    else:
+        return {"success": False, "error": response.text, "status_code": response.status_code}, response.status_code
+
+@app.route('/check-page-subscription', methods=['GET'])
+def check_facebook_page_subscription():
+    """
+    Check which apps the Facebook Page has subscribed to.
+    """
+    if not FACEBOOK_PAGE_ID or not FACEBOOK_ACCESS_TOKEN:
+        return {"error": "FACEBOOK_PAGE_ID and FACEBOOK_ACCESS_TOKEN must be configured"}, 400
+    
+    url = f"https://{BASE_URL}/{API_VERSION}/{FACEBOOK_PAGE_ID}/subscribed_apps"
+    params = {
+        "access_token": FACEBOOK_ACCESS_TOKEN
+    }
+    
+    response = requests.get(url, params=params)
+    
+    if response.status_code == 200:
+        return response.json(), 200
+    else:
+        return {"error": response.text}, response.status_code
+    
+@app.route('/debug-facebook-token', methods=['GET'])
+def debug_facebook_token():
+    """Debug Facebook token to see what permissions it has."""
+    if not FACEBOOK_ACCESS_TOKEN:
+        return {"error": "FACEBOOK_ACCESS_TOKEN not configured"}, 400
+    
+    # Check what the token represents
+
+    url = f"https://{BASE_URL}/{API_VERSION}/me"    
+    params = {"access_token": FACEBOOK_ACCESS_TOKEN}
+    response = requests.get(url, params=params)
+    
+    token_info = response.json() if response.status_code == 200 else {"error": response.text}
+    
+    # Check token permissions
+    debug_url = f"https://{BASE_URL}/{API_VERSION}/debug_token"
+    debug_params = {
+        "input_token": FACEBOOK_ACCESS_TOKEN,
+        "access_token": FACEBOOK_ACCESS_TOKEN
+    }
+    debug_response = requests.get(debug_url, params=debug_params)
+    
+    return {
+        "token_info": token_info,
+        "token_debug": debug_response.json() if debug_response.status_code == 200 else {"error": debug_response.text},
+        "configured_page_id": FACEBOOK_PAGE_ID
+    }, 200
+
+@app.route('/webhookfacebook', methods=['GET'])
+def verify_webhook_facebook():
+    print("🔎 Query params:", request.args)
+
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    print("🔍 Mode:", mode)
+    print("🔍 Token from Meta:", token)
+    print("🔍 Challenge:", challenge)
+    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_FACEBOOK)
+
+    if mode == "subscribe" and token == VERIFY_TOKEN_FACEBOOK:
+        print("✅ Webhook verified.")
+        return challenge, 200  # Must return challenge as plain text
+    else:
+        print("❌ Verification failed.")
+        return "Verification failed", 403
+
+@app.route('/webhookfacebook', methods=['POST'])
+def webhook_facebook():
+    data = request.get_json()
+    print("📥 Received data:", data)
+    time.sleep(2)  # Simulate processing delay
+    # Check if we have the expected structure
+    if not data or "entry" not in data or not data["entry"]:
+        print("❌ Invalid data format")
+        return "OK", 200
+    if "changes" in data["entry"][0] and data["entry"][0]["changes"]:
+        process_facebook_comments(data)
+    if "messaging" in data["entry"][0] and data["entry"][0]["messaging"]:
+        process_facebook_dms(data)
+    return "OK", 200
+
+#####################################################################################################
+##########################################  THREADS  ################################################
+#####################################################################################################
+
+SUPABASE_URL_THREADS = os.environ['SUPABASE_URL_THREADS']
+SUPABASE_KEY_THREADS = os.environ['SUPABASE_KEY_THREADS']
+VERIFY_TOKEN_THREADS = os.environ['VERIFY_TOKEN_THREADS']
+USERNAME_THREADS = os.environ['USERNAME_THREADS']
+
+print("SUPABASE_URL_THREADS:", SUPABASE_URL_THREADS)
+print("SUPABASE_KEY_THREADS:", SUPABASE_KEY_THREADS)
+print("VERIFY_TOKEN_THREADS:", VERIFY_TOKEN_THREADS)
+print("USERNAME_THREADS:", USERNAME_THREADS)
+
+supabase_threads = create_client(SUPABASE_URL_THREADS, SUPABASE_KEY_THREADS)
 
 def load_processed_tuples():
     if not os.path.exists(PROCESSED_TUPLES_FILE):
@@ -245,6 +436,9 @@ def save_processed_tuple(processed_tuple):
 processed_comment_tuples = load_processed_tuples()
 
 def process_replies(data):
+    """
+    Handle Threads Page webhook notifications for replies.
+    """
     print(f"📊 Processing {len(data['values'])} values")
     for value_obj in data["values"]:
         try:
@@ -302,35 +496,25 @@ def process_replies(data):
             print("Value data:", value_obj)
             continue
 
-@app.route('/webhookinstagram', methods=['POST'])
-def webhook_instagram():
-    data = request.get_json()
-    print("📥 Received data:", data)
-    time.sleep(2)  # Simulate processing delay
-    # Check if we have the expected structure
-    if not data or "entry" not in data or not data["entry"]:
-        print("❌ Invalid data format")
-        return "OK", 200
-    if "changes" in data["entry"][0] and data["entry"][0]["changes"]:
-        process_comments(data)
-    if "messaging" in data["entry"][0] and data["entry"][0]["messaging"]:
-        process_dms(data)
-    return "OK", 200
+@app.route('/webhookthreads', methods=['GET'])
+def verify_webhook_threads():
+    print("🔎 Query params:", request.args)
 
-@app.route('/webhookfacebook', methods=['POST'])
-def webhook_facebook():
-    data = request.get_json()
-    print("📥 Received data:", data)
-    time.sleep(2)  # Simulate processing delay
-    # Check if we have the expected structure
-    if not data or "entry" not in data or not data["entry"]:
-        print("❌ Invalid data format")
-        return "OK", 200
-    if "changes" in data["entry"][0] and data["entry"][0]["changes"]:
-        process_fb_comments(data)
-    if "messaging" in data["entry"][0] and data["entry"][0]["messaging"]:
-        process_fb_dms(data)
-    return "OK", 200
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    print("🔍 Mode:", mode)
+    print("🔍 Token from Meta:", token)
+    print("🔍 Challenge:", challenge)
+    print("🔐 Local VERIFY_TOKEN:", VERIFY_TOKEN_THREADS)
+
+    if mode == "subscribe" and token == VERIFY_TOKEN_THREADS:
+        print("✅ Webhook verified.")
+        return challenge, 200  # Must return challenge as plain text
+    else:
+        print("❌ Verification failed.")
+        return "Verification failed", 403
 
 @app.route('/webhookthreads', methods=['POST'])
 def webhook_threads():
@@ -347,4 +531,3 @@ def webhook_threads():
 
 if __name__ == '__main__':
     app.run(debug=True)
-

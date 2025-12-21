@@ -1,6 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<h3>Admin Tools:</h3>
+<div class="upload-buttons">
+    <a href="/webhookinstagram" target="_blank"><button>🔗 Webhook Instagram Endpoint</button></a>
+    <a href="/webhookfacebook" target="_blank"><button>🔗 Webhook Facebook Endpoint</button></a>
+    <a href="/webhookthreads" target="_blank"><button>🔗 Webhook Threads Endpoint</button></a>
+    <a href="/webhookinstagram?hub.mode=subscribe&hub.verify_token=VerifyToken&hub.challenge=test_challenge" target="_blank"><button>✔️ Test Webhook Instagram Verification</button></a>
+    <a href="/webhookfacebook?hub.mode=subscribe&hub.verify_token=VerifyToken&hub.challenge=test_challenge" target="_blank"><button>✔️ Test Webhook Facebook Verification</button></a>
+    <a href="/webhookthreads?hub.mode=subscribe&hub.verify_token=VerifyToken&hub.challenge=test_challenge" target="_blank"><button>✔️ Test Webhook Threads Verification</button></a>
+    <a href="/subscribe-page" target="_blank"><button>📝 Subscribe Facebook Page</button></a>
+    <a href="/check-page-subscription" target="_blank"><button>✅ Check Page Subscription</button></a>
+    <a href="/debug-facebook-token" target="_blank"><button>🔍 Debug Facebook Token</button></a>    
+</div>
+
 <h2>Welcome to the Multi-Platform Video Upload App</h2>
 <p>
     This app allows you to upload videos to your favorite platforms—YouTube, Instagram, and Facebook—with ease. Manage your video uploads all in one place!
