@@ -3,9 +3,12 @@ import time
 import random
 import requests
 from supabase import create_client
+from cerebras.cloud.sdk import Cerebras
+from openai import OpenAI
 
 INSTAGRAM_ACCESS_TOKEN = os.environ['INSTAGRAM_ACCESS_TOKEN']
-GEMINI_API_KEYS_INSTAGRAM = os.environ['GEMINI_API_KEYS_INSTAGRAM']
+CEREBRAS_API_KEY = os.environ['CEREBRAS_API_KEY']
+GROQ_API_KEY = os.environ['GROQ_API_KEY']
 INSTAGRAM_USER_ID = os.environ['INSTAGRAM_USER_ID']
 SUPABASE_URL_INSTAGRAM = os.environ["SUPABASE_URL_INSTAGRAM"]
 SUPABASE_KEY_INSTAGRAM = os.environ["SUPABASE_KEY_INSTAGRAM"]
@@ -13,7 +16,8 @@ API_VERSION_INSTAGRAM = os.environ['API_VERSION_INSTAGRAM']
 BASE_URL_INSTAGRAM = os.environ['BASE_URL_INSTAGRAM']
 
 print("INSTAGRAM_ACCESS_TOKEN:", INSTAGRAM_ACCESS_TOKEN)
-print("GEMINI_API_KEYS_INSTAGRAM:", GEMINI_API_KEYS_INSTAGRAM)
+print("CEREBRAS_API_KEY:", CEREBRAS_API_KEY)
+print("GROQ_API_KEY:", GROQ_API_KEY)
 print("INSTAGRAM_USER_ID:", INSTAGRAM_USER_ID)
 print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM)
 print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM)
@@ -37,16 +41,12 @@ DEFAULT_REPLY = [
 
 supabase_instagram = create_client(SUPABASE_URL_INSTAGRAM, SUPABASE_KEY_INSTAGRAM)
 
-# Load multiple Gemini API keys from environment variables
-GEMINI_API_KEYS_INSTAGRAM = GEMINI_API_KEYS_INSTAGRAM.split(',')
-
-current_key_index = 0
-
-# Function to switch to the next API key
-def switch_gemini_key():
-    global current_key_index
-    current_key_index = (current_key_index + 1) % len(GEMINI_API_KEYS_INSTAGRAM)
-    return GEMINI_API_KEYS_INSTAGRAM[current_key_index]
+# Initialize Cerebras and Groq clients
+cerebras_client = Cerebras(api_key=CEREBRAS_API_KEY)
+groq_client = OpenAI(
+    api_key=GROQ_API_KEY,
+    base_url="https://api.groq.com/openai/v1",
+)
 
 def prompt(user_comment):
     """
@@ -66,7 +66,7 @@ def prompt(user_comment):
         "If the message is just love emojis like ❤️ or 😘, reply only with similar love emojis back."
     )
 
-def filter_gemini_reply(text):
+def filter_ai_reply(text):
     """
     Filters the generated text to remove any unwanted content, such as special characters like * or **.
     """
@@ -75,45 +75,48 @@ def filter_gemini_reply(text):
     filtered_text = filtered_text.replace("\"", "")
     return filtered_text
 
-def get_gemini_reply(user_comment):
+def get_ai_reply(user_comment):
     """
-    Uses Google Gemini API to generate text based on the input prompt.
-    Handles rate limiting by switching API keys.
+    Uses Cerebras API to generate text based on the input prompt.
+    Falls back to Groq API if Cerebras fails or hits rate limit.
     """
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-    headers = {"Content-Type": "application/json"}
-    payload = {
-        "contents": [
-            {
-                "parts": [{
-                    "text": (
-                        prompt(user_comment)
-                    )
-                }]
-            }
-        ]
-    }
-
-    for _ in range(len(GEMINI_API_KEYS_INSTAGRAM)):
-        current_key = GEMINI_API_KEYS_INSTAGRAM[current_key_index]
-        params = {"key": current_key}
-        response = requests.post(url, headers=headers, params=params, json=payload)
-
-        if response.status_code == 200:
-            result = response.json()
-            try:
-                return result["candidates"][0]["content"]["parts"][0]["text"]
-            except (KeyError, IndexError):
-                return random.choice(DEFAULT_REPLY)
-        elif response.status_code == 429:  # Rate limit error
-            print(f"Rate limit reached for key: {current_key}. Switching to next key.")
-            switch_gemini_key()
-        else:
-            print(f"Error with key {current_key}: {response.status_code}. Trying next key.")
-            switch_gemini_key()
-
-    # If all keys fail, return a default reply
-    return random.choice(DEFAULT_REPLY)
+    # Try Cerebras first
+    try:
+        print("🤖 Trying Cerebras API...")
+        chat_completion = cerebras_client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt(user_comment),
+                }
+            ],
+            model="llama-3.3-70b",
+        )
+        print("✅ Cerebras API successful")
+        return chat_completion.choices[0].message.content
+    except Exception as e:
+        print(f"❌ Cerebras API failed: {e}")
+        
+        # Fallback to Groq
+        try:
+            print("🔄 Falling back to Groq API...")
+            chat_completion = groq_client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt(user_comment),
+                    }
+                ],
+                model="meta-llama/llama-guard-4-12b",
+                temperature=1,
+                max_completion_tokens=1024,
+                top_p=1,
+            )
+            print("✅ Groq API successful")
+            return chat_completion.choices[0].message.content
+        except Exception as groq_error:
+            print(f"❌ Groq API also failed: {groq_error}")
+            return random.choice(DEFAULT_REPLY)
     
 def reply_to_comment(comment_id, message):
     """
@@ -166,8 +169,8 @@ def process_comments(comments):
         print(f"\n👤 @{username} said: {comment_text}")
 
         # 3️⃣ Generate AI reply
-        reply = get_gemini_reply(comment_text)
-        reply = filter_gemini_reply(reply)
+        reply = get_ai_reply(comment_text)
+        reply = filter_ai_reply(reply)
         print("🤖 AI reply:", reply)
 
         # 4️⃣ Post reply
