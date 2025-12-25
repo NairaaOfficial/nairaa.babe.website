@@ -1,4 +1,3 @@
-"""Cerebras - Simple function."""
 from cerebras.cloud.sdk import Cerebras
 
 def generate_cerebras(api_key, prompt):

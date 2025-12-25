@@ -1,4 +1,3 @@
-"""Groq - Simple function."""
 from groq import Groq
 
 def generate_groq(api_key, prompt):

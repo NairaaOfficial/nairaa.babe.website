@@ -1,4 +1,3 @@
-"""Simple function - reads model from file, uses it, writes next model."""
 import os
 import random
 from cerebras_model import generate_cerebras
