@@ -2,8 +2,6 @@ import os
 import random
 from .cerebras_model import generate_cerebras
 from .groq_model import generate_groq
-from dotenv import load_dotenv
-load_dotenv()
 
 # LLM API Keys
 CEREBRAS_API_KEY = os.environ['CEREBRAS_API_KEY']
