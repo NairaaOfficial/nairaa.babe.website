@@ -1,7 +1,7 @@
 import os
 import random
-from cerebras_model import generate_cerebras
-from groq_model import generate_groq
+from .cerebras_model import generate_cerebras
+from .groq_model import generate_groq
 from dotenv import load_dotenv
 load_dotenv()
 
