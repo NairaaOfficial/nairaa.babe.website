@@ -1,0 +1,28 @@
+name: ACTIVITY SCHEDULER
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 * *'  # Runs at midnight on the 1st day of every month
+
+jobs:
+  keep-active:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Activity Log
+        run: |
+          echo "Repository activity log - Last updated: $(date)" >> activity.log
+          cat activity.log
+
+      - name: Commit Activity
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add activity.log
+          git commit -m "chore: monthly activity update [skip ci]" || echo "No changes to commit"
+          git push || echo "No changes to push"
