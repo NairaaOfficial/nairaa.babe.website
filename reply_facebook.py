@@ -45,8 +45,13 @@ def reply_to_comment(comment_id, message, user_id=None):
         "message": message,
         "access_token": FACEBOOK_ACCESS_TOKEN
     }
+    
+    response = requests.post(url, data=payload)
+    
+    if response.status_code != 200:
+        print(f"❌ API Error {response.status_code}: {response.text}")
 
-    return requests.post(url, json=payload)
+    return response
 
 def get_earliest_comments():
 

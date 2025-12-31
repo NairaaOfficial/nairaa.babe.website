@@ -40,7 +40,12 @@ def reply_to_comment(comment_id, message):
         "access_token": INSTAGRAM_ACCESS_TOKEN
     }
 
-    return requests.post(url, json=payload)
+    response = requests.post(url, data=payload)
+    
+    if response.status_code != 200:
+        print(f"❌ API Error {response.status_code}: {response.text}")
+    
+    return response
 
 def get_earliest_comments():
 
