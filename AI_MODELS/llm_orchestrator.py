@@ -54,9 +54,9 @@ def generate(user_comment):
     # Define all models in order
     models = [
         ("CEREBRAS", lambda: generate_cerebras(CEREBRAS_API_KEY, prompt)),
+        ("GROQ", lambda: generate_groq(GROQ_API_KEY, prompt)),
         ("BYTEZ", lambda: generate_bytez(BYTEZ_API_KEY, prompt))
     ]
-    # ("GROQ", lambda: generate_groq(GROQ_API_KEY, prompt))
     
     # Find current model index
     current_idx = next((i for i, (name, _) in enumerate(models) if name == current_model), 0)
