@@ -36,6 +36,7 @@ SUPABASE_KEY_INSTAGRAM_DMS = os.environ['SUPABASE_KEY_INSTAGRAM_DMS']
 VERIFY_TOKEN_INSTAGRAM = os.environ['VERIFY_TOKEN_INSTAGRAM']
 USERNAME_INSTAGRAM = os.environ['USERNAME_INSTAGRAM']
 INSTAGRAM_USER_ID = os.environ['INSTAGRAM_USER_ID']
+INSTAGRAM_ACCESS_TOKEN = os.environ['INSTAGRAM_ACCESS_TOKEN']
 
 print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM)
 print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM)
@@ -44,6 +45,7 @@ print("SUPABASE_KEY_INSTAGRAM_DMS:", SUPABASE_KEY_INSTAGRAM_DMS)
 print("VERIFY_TOKEN_INSTAGRAM:", VERIFY_TOKEN_INSTAGRAM)
 print("USERNAME_INSTAGRAM:", USERNAME_INSTAGRAM)
 print("INSTAGRAM_USER_ID:", INSTAGRAM_USER_ID)
+print("INSTAGRAM_ACCESS_TOKEN:", INSTAGRAM_ACCESS_TOKEN)
 
 supabase_instagram = create_client(SUPABASE_URL_INSTAGRAM, SUPABASE_KEY_INSTAGRAM)
 supabase_instagram_dms = create_client(SUPABASE_URL_INSTAGRAM_DMS, SUPABASE_KEY_INSTAGRAM_DMS)
@@ -53,23 +55,18 @@ def send_instagram_private_reply(comment_id, message_text):
     
     Returns: (success: bool, result: dict)
     """
-    # Get required config from Facebook env vars (Instagram uses graph.facebook.com)
     if not INSTAGRAM_USER_ID:
         print("❌ INSTAGRAM_USER_ID not configured")
         return False, {"error": "INSTAGRAM_USER_ID not configured"}
     
-    # These are defined in the Facebook section
-    try:
-        access_token = FACEBOOK_ACCESS_TOKEN
-        base_url = BASE_URL_FACEBOOK
-        api_version = API_VERSION_FACEBOOK
-    except NameError:
-        print("❌ Missing Facebook config (needed for Instagram API)")
-        return False, {"error": "Missing Facebook configuration"}
+    if not INSTAGRAM_ACCESS_TOKEN:
+        print("❌ INSTAGRAM_ACCESS_TOKEN not configured")
+        return False, {"error": "INSTAGRAM_ACCESS_TOKEN not configured"}
     
-    url = f"https://{base_url}/{api_version}/{INSTAGRAM_USER_ID}/messages"
+    # Use Instagram-specific endpoint and token
+    url = f"https://graph.facebook.com/v23.0/{INSTAGRAM_USER_ID}/messages"
     headers = {
-        "Authorization": f"Bearer {access_token}",
+        "Authorization": f"Bearer {INSTAGRAM_ACCESS_TOKEN}",
         "Content-Type": "application/json"
     }
     payload = {
