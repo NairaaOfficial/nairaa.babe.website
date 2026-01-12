@@ -35,6 +35,7 @@ SUPABASE_URL_INSTAGRAM_DMS = os.environ['SUPABASE_URL_INSTAGRAM_DMS']
 SUPABASE_KEY_INSTAGRAM_DMS = os.environ['SUPABASE_KEY_INSTAGRAM_DMS']
 VERIFY_TOKEN_INSTAGRAM = os.environ['VERIFY_TOKEN_INSTAGRAM']
 USERNAME_INSTAGRAM = os.environ['USERNAME_INSTAGRAM']
+INSTAGRAM_USER_ID = os.environ.get('INSTAGRAM_USER_ID')  # App user's IG professional account ID
 
 print("SUPABASE_URL_INSTAGRAM:", SUPABASE_URL_INSTAGRAM)
 print("SUPABASE_KEY_INSTAGRAM:", SUPABASE_KEY_INSTAGRAM)
@@ -42,9 +43,52 @@ print("SUPABASE_URL_INSTAGRAM_DMS:", SUPABASE_URL_INSTAGRAM_DMS)
 print("SUPABASE_KEY_INSTAGRAM_DMS:", SUPABASE_KEY_INSTAGRAM_DMS)
 print("VERIFY_TOKEN_INSTAGRAM:", VERIFY_TOKEN_INSTAGRAM)
 print("USERNAME_INSTAGRAM:", USERNAME_INSTAGRAM)
+print("INSTAGRAM_USER_ID:", INSTAGRAM_USER_ID)
 
 supabase_instagram = create_client(SUPABASE_URL_INSTAGRAM, SUPABASE_KEY_INSTAGRAM)
 supabase_instagram_dms = create_client(SUPABASE_URL_INSTAGRAM_DMS, SUPABASE_KEY_INSTAGRAM_DMS)
+
+def send_instagram_private_reply(comment_id, message_text):
+    """Send a private reply to an Instagram comment using Graph API.
+    
+    Returns: (success: bool, result: dict)
+    """
+    # Get required config from Facebook env vars (Instagram uses graph.facebook.com)
+    if not INSTAGRAM_USER_ID:
+        print("❌ INSTAGRAM_USER_ID not configured")
+        return False, {"error": "INSTAGRAM_USER_ID not configured"}
+    
+    # These are defined in the Facebook section
+    try:
+        access_token = FACEBOOK_ACCESS_TOKEN
+        base_url = BASE_URL_FACEBOOK
+        api_version = API_VERSION_FACEBOOK
+    except NameError:
+        print("❌ Missing Facebook config (needed for Instagram API)")
+        return False, {"error": "Missing Facebook configuration"}
+    
+    url = f"https://{base_url}/{api_version}/{INSTAGRAM_USER_ID}/messages"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "recipient": {"comment_id": comment_id},
+        "message": {"text": message_text}
+    }
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=15)
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Private reply sent: recipient_id={data.get('recipient_id')}, message_id={data.get('message_id')}")
+            return True, data
+        else:
+            print(f"❌ Failed to send private reply: {response.status_code} - {response.text}")
+            return False, {"error": response.text, "status_code": response.status_code}
+    except Exception as e:
+        print(f"❌ Exception sending private reply: {str(e)}")
+        return False, {"error": str(e)}
 
 def process_instagram_comments(data):
     """
@@ -90,14 +134,22 @@ def process_instagram_comments(data):
                     "replied": False
                 }
 
-                # Insert into Supabase table
-                response = supabase_instagram.table("Instagram Comments").insert(record).execute()
-
-                # Optional: log errors
-                if response.data:
-                    print("Inserted:", response.data)
+                # Check if comment contains "test" - if so, send private reply
+                if isinstance(comment, str) and "test" in comment.lower():
+                    print(f"🧪 'test' detected in comment from @{username}: {comment}")
+                    success, result = send_instagram_private_reply(comment_id, "Thanks for your comment!")
+                    if success:
+                        print(f"✅ Private reply sent successfully")
+                    else:
+                        print(f"❌ Failed to send private reply: {result}")
                 else:
-                    print("Error:", response)    
+                    # Insert into Supabase table
+                    response = supabase_instagram.table("Instagram Comments").insert(record).execute()
+                    # Optional: log errors
+                    if response.data:
+                        print("Inserted:", response.data)
+                    else:
+                        print("Error:", response)    
 
             except KeyError as e:
                 print(f"❌ Error processing comment: Missing field {str(e)}")
