@@ -3,11 +3,13 @@ import random
 from .cerebras_model import generate_cerebras
 from .groq_model import generate_groq
 from .bytez import generate_bytez
+from .openrouter_model import generate_openrouter
 
 # LLM API Keys
 CEREBRAS_API_KEY = os.environ['CEREBRAS_API_KEY']
 GROQ_API_KEY = os.environ['GROQ_API_KEY']
 BYTEZ_API_KEY = os.environ['BYTEZ_API_KEY']
+OPENROUTER_API_KEY = os.environ['OPENROUTER_API_KEY']
 
 DEFAULT_REPLY = [
     "omg stop, you're making me blush 🙈💕",
@@ -55,9 +57,9 @@ def generate(user_comment):
     models = [
         ("CEREBRAS", lambda: generate_cerebras(CEREBRAS_API_KEY, prompt)),
         ("GROQ", lambda: generate_groq(GROQ_API_KEY, prompt)),
-        ("BYTEZ", lambda: generate_bytez(BYTEZ_API_KEY, prompt))
+        ("OPENROUTER", lambda: generate_openrouter(OPENROUTER_API_KEY, prompt))
     ]
-    
+    # ("BYTEZ", lambda: generate_bytez(BYTEZ_API_KEY, prompt)),
     # Find current model index
     current_idx = next((i for i, (name, _) in enumerate(models) if name == current_model), 0)
     
