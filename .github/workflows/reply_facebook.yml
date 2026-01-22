@@ -37,7 +37,7 @@ jobs:
             FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
             CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
             GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-            BYTEZ_API_KEY: ${{ secrets.BYTEZ_API_KEY }}
+            OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
             SUPABASE_URL_FACEBOOK: ${{ secrets.SUPABASE_URL_FACEBOOK }}
             SUPABASE_KEY_FACEBOOK: ${{ secrets.SUPABASE_KEY_FACEBOOK }}
             API_VERSION_FACEBOOK: ${{ secrets.API_VERSION_FACEBOOK }}
