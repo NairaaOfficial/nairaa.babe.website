@@ -6,8 +6,5 @@ while true; do
     echo "No more workflow runs to delete."
     break
   fi
-  for id in $ids; do
-    echo "Deleting run $id"
-    gh run delete "$id" <<< "y"
-  done
+  echo "$ids" | xargs -P 100 -I {} sh -c 'echo "Deleting run {}"; yes | gh run delete "{}"'
 done
