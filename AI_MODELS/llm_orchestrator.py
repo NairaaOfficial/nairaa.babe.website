@@ -8,7 +8,7 @@ from .openrouter_model import generate_openrouter
 # LLM API Keys
 CEREBRAS_API_KEY = os.environ['CEREBRAS_API_KEY']
 GROQ_API_KEY = os.environ['GROQ_API_KEY']
-BYTEZ_API_KEY = os.environ['BYTEZ_API_KEY']
+# BYTEZ_API_KEY = os.environ['BYTEZ_API_KEY']
 OPENROUTER_API_KEY = os.environ['OPENROUTER_API_KEY']
 
 DEFAULT_REPLY = [
